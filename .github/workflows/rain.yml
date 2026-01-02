@@ -1,0 +1,22 @@
+name: Live Rain Stream
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+jobs:
+  rain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: sudo apt update && sudo apt install -y ffmpeg
+
+      - name: Start Rain Stream
+        env:
+          RAIN_RTMP: ${{ secrets.RAIN_RTMP }}
+        run: bash rain/stream.sh
