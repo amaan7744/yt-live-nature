@@ -1,22 +1,39 @@
-name: Live Rain Stream
+name: Fix Rain Video (One Time)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 */6 * * *"
 
 jobs:
-  rain:
+  fix:
     runs-on: ubuntu-latest
-    timeout-minutes: 355
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Install FFmpeg
         run: sudo apt update && sudo apt install -y ffmpeg
 
-      - name: Start Rain Stream
-        env:
-          RAIN_RTMP: ${{ secrets.RAIN_RTMP }}
-        run: bash rain/stream.sh
+      - name: Re-encode video safely
+        run: |
+          ffmpeg -y -err_detect ignore_err \
+            -i rain/video/rain_night.mp4 \
+            -c:v libx264 \
+            -pix_fmt yuv420p \
+            -profile:v high \
+            -level 4.1 \
+            -movflags +faststart \
+            -an \
+            rain/video/rain_night_fixed.mp4
+
+      - name: Replace original video
+        run: |
+          mv rain/video/rain_night_fixed.mp4 rain/video/rain_night.mp4
+
+      - name: Commit fixed video
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add rain/video/rain_night.mp4
+          git commit -m "Fix rain video for streaming"
+          git push
