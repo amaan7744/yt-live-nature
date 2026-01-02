@@ -1,0 +1,39 @@
+name: Fix Rain Audio (One Time)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix_audio:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: sudo apt update && sudo apt install -y ffmpeg
+
+      - name: Re-encode audio to safe WAV
+        run: |
+          ffmpeg -y \
+            -i rain/audio/rain.wav \
+            -ac 2 \
+            -ar 44100 \
+            -sample_fmt s16 \
+            rain/audio/rain_fixed.wav
+
+      - name: Replace original audio
+        run: |
+          mv rain/audio/rain_fixed.wav rain/audio/rain.wav
+
+      - name: Commit fixed audio
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add rain/audio/rain.wav
+          git commit -m "Fix rain audio for live streaming"
+          git push
