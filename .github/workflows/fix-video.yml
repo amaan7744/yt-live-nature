@@ -1,0 +1,40 @@
+name: Fix Rain Video (One Time)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix_video:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: sudo apt update && sudo apt install -y ffmpeg
+
+      - name: Re-encode video to streaming-safe MP4
+        run: |
+          ffmpeg -y \
+            -i rain/video/rain_night.mp4 \
+            -c:v libx264 \
+            -pix_fmt yuv420p \
+            -movflags +faststart \
+            -an \
+            rain/video/rain_night_fixed.mp4
+
+      - name: Replace original video
+        run: |
+          mv rain/video/rain_night_fixed.mp4 rain/video/rain_night.mp4
+
+      - name: Commit fixed video
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add rain/video/rain_night.mp4
+          git commit -m "Fix rain video for live streaming"
+          git push
