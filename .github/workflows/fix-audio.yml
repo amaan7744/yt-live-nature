@@ -20,7 +20,7 @@ jobs:
       - name: Re-encode audio to safe WAV
         run: |
           ffmpeg -y \
-            -i rain/audio/rain.wav \
+            -i rain/audio/rain.mp3 \
             -ac 2 \
             -ar 44100 \
             -sample_fmt s16 \
